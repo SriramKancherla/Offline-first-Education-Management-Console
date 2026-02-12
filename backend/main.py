@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,13 @@ import mysql.connector
 import jwt
 from datetime import datetime, timedelta
 from fastapi.openapi.utils import get_openapi
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+cred = credentials.Certificate("shiksha-sahayak-9d71c-firebase-adminsdk-fbsvc-b791be5920.json")
+firebase_admin.initialize_app(cred)
+
+firebase_db = firestore.client()
 
 
 SECRET_KEY = "your_super_secret_key"
@@ -83,6 +91,28 @@ class CreateClass(BaseModel):
 class LoginData(BaseModel):
     name: str
     password: str
+
+def convert_types(obj):
+    """
+    Recursively convert unsupported types (like datetime.date) to strings
+    so Firestore can store them.
+    """
+    import datetime
+
+    if isinstance(obj, dict):
+        return {k: convert_types(v) for k, v in obj.items()}
+
+    elif isinstance(obj, list):
+        return [convert_types(i) for i in obj]
+
+    elif isinstance(obj, datetime.date):
+        return obj.isoformat()
+
+    elif isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+
+    else:
+        return obj
 
 
 
@@ -329,6 +359,31 @@ def get_all_classes(user=Depends(get_current_user)):
     cursor.close()
     return {"classes": result}
 
+
+
+@app.post("/admin/backup-to-firebase")
+def backup_mysql_to_firebase(user=Depends(get_current_user)):
+
+    db_conn = get_db()
+    cursor = db_conn.cursor(dictionary=True)
+
+    snapshot = {}
+
+    tables = ["students", "teachers", "worksheets", "assessments", "class"]
+
+    for table in tables:
+        cursor.execute(f"SELECT * FROM {table}")
+        rows = cursor.fetchall()
+
+        # 🔥 FIX: Convert all non-serializable types
+        snapshot[table] = convert_types(rows)
+
+    cursor.close()
+    db_conn.close()
+
+    firebase_db.collection("backups").document("mysql_snapshot").set(snapshot)
+
+    return {"message": "Full MySQL backup pushed to Firebase successfully"}
 
 
 def custom_openapi():
