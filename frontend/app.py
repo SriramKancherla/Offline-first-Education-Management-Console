@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 
 # ===== API ENDPOINTS =====
-MAIN_API = "http://localhost:8000"
-AI_API = "http://localhost:9000"
+MAIN_API = "http://0.0.0.0:8000"
+AI_API = "http://0.0.0.0:6000"
 
 st.set_page_config(page_title="Shiksha Sahayak", layout="wide")
 
@@ -81,10 +81,10 @@ def teacher_portal():
         "Update Marks",
         "Add Knowledge",
         "Worksheet Generator",
-        "Assessment Generator"
+        "Assessment Generator",
+        "Backup to Firebase"        # NEW OPTION ADDED
     ])
 
-    # ---- View Students ----
     if menu == "View Students":
         st.header("Students Database")
 
@@ -94,7 +94,6 @@ def teacher_portal():
         else:
             st.error("Failed to fetch students")
 
-    # ---- View Classes ----
     elif menu == "View Classes":
         st.header("Your Classes")
 
@@ -105,7 +104,6 @@ def teacher_portal():
             if res.status_code == 200:
                 st.table(res.json()["classes"])
 
-    # ---- Create Class ----
     elif menu == "Create Class":
         st.header("Create Class")
 
@@ -135,7 +133,6 @@ def teacher_portal():
             else:
                 st.error(res.text)
 
-    # ---- View Worksheets ----
     elif menu == "View Worksheets":
         st.header("Worksheets")
 
@@ -146,7 +143,6 @@ def teacher_portal():
             if res.status_code == 200:
                 st.table(res.json()["worksheets"])
 
-    # ---- Add Worksheet ----
     elif menu == "Add Worksheet":
         st.header("Upload Worksheet")
 
@@ -174,7 +170,6 @@ def teacher_portal():
             else:
                 st.error(res.text)
 
-    # ---- Add Assessment ----
     elif menu == "Add Assessment":
         st.header("Create Assessments")
 
@@ -206,7 +201,6 @@ def teacher_portal():
             else:
                 st.error(res.text)
 
-    # ---- View Assessments ----
     elif menu == "View Assessments":
         st.header("Assessments by Teacher")
 
@@ -221,7 +215,6 @@ def teacher_portal():
             if res.status_code == 200:
                 st.table(res.json()["assessments"])
 
-    # ---- Update Marks ----
     elif menu == "Update Marks":
         st.header("Update Student Marks")
 
@@ -243,7 +236,6 @@ def teacher_portal():
             else:
                 st.error(res.text)
 
-    # ---- AI Knowledge ----
     elif menu == "Add Knowledge":
         st.header("Upload Knowledge for AI")
 
@@ -256,7 +248,6 @@ def teacher_portal():
             if res.status_code == 200:
                 st.success("Uploaded to AI!")
 
-    # ---- AI Generators ----
     elif menu == "Worksheet Generator":
         difficulty = st.selectbox("Difficulty", ["Easy", "Medium", "Hard"])
 
@@ -280,6 +271,24 @@ def teacher_portal():
 
             if res.status_code == 200:
                 st.write(res.json()["assessment"])
+
+    # ======= NEW FIREBASE BACKUP FEATURE =======
+    elif menu == "Backup to Firebase":
+        st.header("Backup Database to Firebase")
+
+        st.write("This will push full MySQL backup to Firebase Firestore.")
+
+        if st.button("Push Backup Now"):
+
+            res = requests.post(
+                f"{MAIN_API}/admin/backup-to-firebase",
+                headers=auth_headers()
+            )
+
+            if res.status_code == 200:
+                st.success("Backup Successfully Pushed to Firebase!")
+            else:
+                st.error(f"Backup Failed: {res.text}")
 
 
 # ================== STUDENT PORTAL ===================
