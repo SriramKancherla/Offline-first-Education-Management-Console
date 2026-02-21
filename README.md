@@ -20,7 +20,7 @@
 <h3>🛠️ Getting Started</h3>
 <p>Clone the repository:</p>
 <pre>
-git clone https://github.com/Adarsh16-30/Offline-first-Education-Management-Console.git
+git clone https://github.com/SriramKancherla/Offline-first-Education-Management-Console.git
 cd Offline-first-Education-Management-Console
 </pre>
 
