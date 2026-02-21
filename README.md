@@ -1,4 +1,4 @@
-<h1 align="center">📚 Offline-first Education Management Console</h1>
+<h1 align="center">📚 Shiksha Sahayak</h1>
 <p align="center">
 <b>An offline-first, comprehensive education management platform built for teachers and students with local AI capabilities.</b>
 <br>
